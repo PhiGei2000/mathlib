@@ -6,12 +6,6 @@ Expression* Exponentiation::expand() const {
     Expression* left = this->left->expand();
     getFactors(left, leftFactors);
 
-    if (leftFactors.size() == 1) {
-        delete left;
-
-        return copy();
-    }
-
     // (a * b) ^ c = a ^ c * b ^ c
     Expression* result = new Exponentiation(leftFactors[leftFactors.size() - 1]->copy(), right->copy());
     for (int l = leftFactors.size() - 2; l >= 0; l--) {

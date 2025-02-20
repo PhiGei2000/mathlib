@@ -6,6 +6,7 @@
 
 struct Number;
 struct Expression;
+struct Variable;
 
 enum class ExpressionTypes : unsigned int {
     Number = 1,
@@ -46,6 +47,8 @@ struct Expression {
         return copy();
     };
 
+    virtual Expression* differentiate(const Variable* var) const;
+
     inline virtual void replaceChild(Expression* child, Expression* expr) {
     }
 
@@ -73,4 +76,3 @@ struct Expression {
     static void getSummands(const Expression* expr, std::vector<const Expression*>& summands);
     static void getFactors(const Expression* expr, std::vector<const Expression*>& factors);
 };
-

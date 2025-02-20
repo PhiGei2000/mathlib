@@ -1,6 +1,7 @@
 #pragma once
 #include "expressions/binaryExpression.hpp"
 #include "expressions/number.hpp"
+#include "expressions/variable.hpp"
 
 struct Addition : public BinaryExpression<true> {
   public:
@@ -10,6 +11,10 @@ struct Addition : public BinaryExpression<true> {
 
     inline virtual Number getValue() const override {
         return left->getValue() + right->getValue();
+    }
+
+    inline virtual Expression* differentiate(const Variable* var) const override {
+        return new Addition(left->differentiate(var), right->differentiate(var));
     }
 
     inline virtual std::string toString() const override {
@@ -27,5 +32,5 @@ struct Addition : public BinaryExpression<true> {
 
 template<ExpressionType T1, ExpressionType T2>
 inline Addition add(T1& first, T2& second) {
-  return Addition(&first, &second);
+    return Addition(&first, &second);
 }

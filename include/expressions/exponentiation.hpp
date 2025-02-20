@@ -4,7 +4,11 @@
 #include "multiplication.hpp"
 #include "number.hpp"
 
+#ifdef WIN32
+#include <cmath>
+#else
 #include <math.h>
+#endif
 
 struct Exponentiation : public BinaryExpression<false> {
   public:
@@ -14,6 +18,16 @@ struct Exponentiation : public BinaryExpression<false> {
 
     inline virtual Number getValue() const override {
         return std::pow(left->getValue(), right->getValue());
+    }
+
+    inline virtual Expression* differentiate(const Variable* var) const override {
+        // d/dx f^g = f ^ g * (g' * ln f + g / f * f')
+
+        return new Multiplication(copy(),
+                                  new Addition(
+                                      new Multiplication(right->differentiate(var), /*ln*/ left->copy()),
+                                      new Multiplication(right->copy(),
+                                                         new Multiplication(new Exponentiation(left->copy(), new Number(-1)), left->differentiate(var)))));
     }
 
     inline virtual std::string toString() const override {
@@ -37,9 +51,7 @@ struct Exponentiation : public BinaryExpression<false> {
     virtual Expression* expand() const override;
 };
 
-
 template<ExpressionType TBase, ExpressionType TExp>
 Exponentiation pow(TBase& base, TExp& exponent) {
     return Exponentiation(&base, &exponent);
 }
-

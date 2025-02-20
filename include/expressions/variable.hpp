@@ -14,9 +14,12 @@ struct Variable : public Expression{
     virtual std::string toString() const override;
     virtual ExpressionTypes getType() const override;
 
+    virtual Expression* differentiate(const Variable* var) const override;
+
     virtual bool matches(const Expression* pattern) const override;
 
     virtual Expression* copy() const override {
         return new Variable(symbol);
     }
+
 };

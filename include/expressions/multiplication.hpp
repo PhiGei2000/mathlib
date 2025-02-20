@@ -16,6 +16,10 @@ struct Multiplication : public BinaryExpression<true> {
         return left->getValue() * right->getValue();
     }
 
+    inline virtual Expression* differentiate(const Variable* var) const override {
+        return new Addition(new Multiplication(left->differentiate(var), right->copy()), new Multiplication(left->copy(), right->differentiate(var)));
+    }
+
     inline virtual std::string toString() const override {
         bool bracketsLeft = left->getType() == ExpressionTypes::Addition;
         bool bracketsRight = right->getType() == ExpressionTypes::Addition;

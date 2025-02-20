@@ -8,6 +8,14 @@ Variable::Variable(const Variable::SymbolType& symbol)
     : symbol(symbol) {
 }
 
+Expression* Variable::differentiate(const Variable* var) const {
+    if (var->symbol == this->symbol) {
+        return new Number(1);
+    }
+
+    return new Number(0);
+}
+
 Number Variable::getValue() const {
     throw std::runtime_error("this");
 }

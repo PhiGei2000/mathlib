@@ -7,16 +7,18 @@ int main(int argC, char** argV) {
     auto y = Variable("y");
 
     auto two = Complex(2, 0);
-    auto prod = mul(x, y);
+    auto five = Complex(5, 0);
+    auto prod = mul(five, y);
     auto expr = pow(prod, two);
+    auto sum = add(x, prod);
 
-    auto expanded = expr.expand();
+    auto result = expr.differentiate(&x);
 
-    std::cout << "expanding: " << expr.toString() << " = " << expanded->toString() << std::endl;
+    std::cout << "expanding: " << expr.toString() << " = " << result->toString() << std::endl;
 
-    std::cout << "Num of expressions: " << Expression::expressionCount << "\nDelete expanded" << std::endl;
+    std::cout << "Num of expressions: " << Expression::expressionCount << "\nDelete result" << std::endl;
 
-    delete expanded;
+    delete result;
 
     std::cout << "Num of expressions: " << Expression::expressionCount << std::endl;
 }

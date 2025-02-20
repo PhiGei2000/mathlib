@@ -1,10 +1,16 @@
 #include "expressions/expression.hpp"
 
-#include "expressions/binaryExpression.hpp"
 #include "expressions/addition.hpp"
+#include "expressions/binaryExpression.hpp"
 #include "expressions/multiplication.hpp"
+#include "expressions/number.hpp"
+#include "expressions/variable.hpp"
 
 int Expression::expressionCount = 0;
+
+Expression* Expression::differentiate(const Variable* var) const {
+    return new Number(0);
+}
 
 void Expression::operator delete(void* ptr) {
     Expression* expr = static_cast<Expression*>(ptr);
@@ -18,7 +24,6 @@ void Expression::operator delete(void* ptr) {
 
     return ::operator delete(ptr);
 }
-
 
 void Expression::getSummands(const Expression* expr, std::vector<const Expression*>& summands) {
     if (expr->getType() == ExpressionTypes::Addition) {
