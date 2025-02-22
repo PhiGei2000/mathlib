@@ -22,6 +22,7 @@ concept ExpressionType = std::is_base_of<Expression, T>::value && !std::is_abstr
 struct Expression {
   public:
     static int expressionCount;
+    static std::vector<const Expression*> expressions;
 
     Expression* parent = nullptr;
 
@@ -37,6 +38,10 @@ struct Expression {
         return false;
     }
 
+    inline virtual bool isComplex() const {
+        return false;
+    }
+
     inline virtual std::vector<const Expression*> getChildren() const {
         return {};
     }
@@ -48,6 +53,10 @@ struct Expression {
     };
 
     virtual Expression* differentiate(const Variable* var) const;
+
+    inline virtual Expression* simplify() const {
+        return copy();
+    }
 
     inline virtual void replaceChild(Expression* child, Expression* expr) {
     }
@@ -67,7 +76,10 @@ struct Expression {
     inline static void* operator new(std::size_t s) {
         expressionCount += 1;
 
-        return ::operator new(s);
+        void* ptr = ::operator new(s);
+        expressions.push_back(static_cast<const Expression*>(ptr));
+
+        return ptr;
     }
 
     static void operator delete(void* ptr);

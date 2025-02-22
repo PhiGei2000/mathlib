@@ -23,6 +23,10 @@ struct Complex : public Number {
     Complex conjugate() const;
     std::tuple<double, double> polarForm() const;
 
+    inline virtual bool isComplex() const override {
+        return imaginary != 0;
+    }
+
     virtual std::string toString() const override;
 
     inline virtual Expression* copy() const override {
@@ -36,6 +40,13 @@ struct Complex : public Number {
     Complex operator/(const double& other) const;
     Complex operator/(const Complex& other) const;
     Complex operator^(const Complex& other) const;
+
+    Complex operator+=(const Complex& other);
+    Complex operator-=(const Complex& other);
+    Complex operator*=(const Complex& other);
+    Complex operator/=(const double& other);
+    Complex operator/=(const Complex& other);
+    Complex operator^=(const Complex& other);
 };
 
 Complex operator+(const double& value, const Complex& other);
@@ -45,5 +56,6 @@ Complex operator/(const double& value, const Complex& other);
 
 Complex log(const Complex& c);
 Complex exp(const Complex& c);
+
 
 static constexpr Complex I = Complex(0, 1);

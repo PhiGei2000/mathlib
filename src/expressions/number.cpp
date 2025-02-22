@@ -1,5 +1,7 @@
 #include "expressions/number.hpp"
 
+#include <cmath>
+
 Number Number::getValue() const {
     return Number(*this);
 }
@@ -41,4 +43,8 @@ Number Number::operator/(const Number& other) const {
 
 Number::operator double() const {
     return value;
+}
+
+Number Number::operator^(const Number& exponent) const {
+    return Number(std::pow(value, exponent.value));
 }

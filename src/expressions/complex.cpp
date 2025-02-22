@@ -73,6 +73,52 @@ Complex Complex::operator^(const Complex& other) const {
     return log(abs) * Complex(std::tuple<double, double>(0, arg));
 }
 
+Complex Complex::operator+=(const Complex& other) {
+    value += other.value;
+    imaginary += other.imaginary;
+
+    return *this;
+}
+
+Complex Complex::operator-=(const Complex& other) {
+    value -= other.value;
+    imaginary -= other.imaginary;
+
+    return *this;
+}
+
+Complex Complex::operator*=(const Complex& other) {
+    Complex prod = *this * other;
+
+    value = prod.value;
+    imaginary = prod.imaginary;
+    return *this;
+}
+
+Complex Complex::operator/=(const double& other) {
+    value /= other;
+    imaginary /= other;
+    return *this;
+}
+
+Complex Complex::operator/=(const Complex& other) {
+    Complex frac = *this / other;
+
+    value = frac.value;
+    imaginary = frac.imaginary;
+
+    return *this;
+}
+
+Complex Complex::operator^=(const Complex& other) {
+    Complex pow = *this ^ other;
+
+    value = pow.value;
+    imaginary = pow.imaginary;
+
+    return *this;
+}
+
 Complex operator+(const double& value, const Complex& other) {
     return Complex(value) + other;
 }
@@ -98,4 +144,8 @@ Complex log(const Complex& c) {
 Complex exp(const Complex& c) {
     const auto& [abs, arg] = c.polarForm();
     return abs * Complex(cos(arg), sin(arg));
+}
+
+Complex pow(const Complex& base, const Complex& exponent) {
+    return exp(log(base) * exponent);
 }

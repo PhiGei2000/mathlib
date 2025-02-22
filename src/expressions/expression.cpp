@@ -7,6 +7,7 @@
 #include "expressions/variable.hpp"
 
 int Expression::expressionCount = 0;
+std::vector<const Expression*> Expression::expressions = {};
 
 Expression* Expression::differentiate(const Variable* var) const {
     return new Number(0);
@@ -21,6 +22,7 @@ void Expression::operator delete(void* ptr) {
     }
 
     expressionCount -= 1;
+    expressions.erase(std::find(expressions.begin(), expressions.end(), expr));
 
     return ::operator delete(ptr);
 }

@@ -25,6 +25,28 @@ struct Number : public Expression {
     Number operator-(const Number& other) const;
     Number operator*(const Number& other) const;
     Number operator/(const Number& other) const;
+    Number operator^(const Number& exponent) const;
+
+    inline Number operator+=(const Number& other) {
+        value += other.value;
+        return *this;
+    }
+
+    inline Number operator-=(const Number& other) {
+        value -= other.value;
+        return *this;
+    }
+
+    inline Number operator*=(const Number& other) {
+        value *= other.value;
+        return *this;
+    }
+
+    inline Number operator/=(const Number& other) {
+        value /= other.value;
+        return *this;
+    }
 
     operator double() const;
+
 };
