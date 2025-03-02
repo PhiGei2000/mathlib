@@ -11,7 +11,7 @@ struct Variable : public Expression{
     Variable(const SymbolType& symbol);
 
     virtual Number getValue() const override;
-    virtual std::string toString() const override;
+    virtual std::string to_string() const override;
     virtual ExpressionTypes getType() const override;
 
     virtual Expression* differentiate(const Variable* var) const override;

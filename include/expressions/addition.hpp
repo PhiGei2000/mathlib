@@ -43,8 +43,8 @@ struct Addition : public BinaryExpression<true> {
         return new Addition(simplifiedLeft, simplifiedRight);
     }
 
-    inline virtual std::string toString() const override {
-        return left->toString() + " + " + right->toString();
+    inline virtual std::string to_string() const override {
+        return left->to_string() + " + " + right->to_string();
     }
 
     inline virtual ExpressionTypes getType() const override {

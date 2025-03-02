@@ -6,7 +6,7 @@ Number Number::getValue() const {
     return Number(*this);
 }
 
-std::string Number::toString() const {
+std::string Number::to_string() const {
     return std::to_string(value);
 }
 

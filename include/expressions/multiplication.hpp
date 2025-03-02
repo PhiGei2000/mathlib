@@ -22,12 +22,12 @@ struct Multiplication : public BinaryExpression<true> {
 
     virtual Expression* simplify() const override;
 
-    inline virtual std::string toString() const override {
+    inline virtual std::string to_string() const override {
         bool bracketsLeft = left->getType() == ExpressionTypes::Addition || left->isComplex();
         bool bracketsRight = right->getType() == ExpressionTypes::Addition || left->isComplex();
 
-        const std::string& leftString = (bracketsLeft ? "(" + left->toString() + ")" : left->toString());
-        const std::string& rightString = (bracketsRight ? "(" + right->toString() + ")" : right->toString());
+        const std::string& leftString = (bracketsLeft ? "(" + left->to_string() + ")" : left->to_string());
+        const std::string& rightString = (bracketsRight ? "(" + right->to_string() + ")" : right->to_string());
 
         return leftString + " * " + rightString;
     }

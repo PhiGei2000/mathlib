@@ -17,7 +17,7 @@ enum class ExpressionTypes : unsigned int {
 };
 
 template<typename T>
-concept ExpressionType = std::is_base_of<Expression, T>::value && !std::is_abstract<T>::value;
+concept ExpressionType = std::is_base_of<Expression, T>::value;
 
 struct Expression {
   public:
@@ -30,7 +30,7 @@ struct Expression {
 
     virtual Number getValue() const = 0;
 
-    virtual std::string toString() const = 0;
+    virtual std::string to_string() const = 0;
 
     virtual ExpressionTypes getType() const = 0;
 

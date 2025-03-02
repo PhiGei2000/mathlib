@@ -56,12 +56,12 @@ struct Exponentiation : public BinaryExpression<false> {
         return new Exponentiation(simplifiedLeft, simplifiedRight);
     }
 
-    inline virtual std::string toString() const override {
+    inline virtual std::string to_string() const override {
         bool leftBrackets = left->getType() > ExpressionTypes::Exponentiation || left->isComplex();
         bool rightBrackets = right->getType() >= ExpressionTypes::Exponentiation || right->isComplex();
 
-        const std::string& leftString = leftBrackets ? "(" + left->toString() + ")" : left->toString();
-        const std::string& rightString = rightBrackets ? "(" + right->toString() + ")" : right->toString();
+        const std::string& leftString = leftBrackets ? "(" + left->to_string() + ")" : left->to_string();
+        const std::string& rightString = rightBrackets ? "(" + right->to_string() + ")" : right->to_string();
 
         return leftString + " ^ " + rightString;
     }

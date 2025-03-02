@@ -20,7 +20,7 @@ Number Variable::getValue() const {
     throw std::runtime_error("this");
 }
 
-std::string Variable::toString() const {
+std::string Variable::to_string() const {
     return std::string(symbol);
 }
 
