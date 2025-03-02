@@ -42,14 +42,12 @@ Expression* Multiplication::expand() const {
 }
 
 Expression* Multiplication::simplify() const {
-    // simplify both factors
-    Expression* expandedLeft = left->expand();
-    Expression* simplifiedLeft = expandedLeft->simplify();
-    delete expandedLeft;
+    if (left->getType() == ExpressionTypes::Addition || right->getType() == ExpressionTypes::Addition) {
+        simplifyExpandable();
+    }
 
-    Expression* expandedRight = right->expand();
-    Expression* simplifiedRight = expandedRight->simplify();
-    delete expandedRight;
+    // simplify both factors
+    auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
 
     // simplify numerical factors
     switch (simplifiedLeft->getType()) {
@@ -65,12 +63,49 @@ Expression* Multiplication::simplify() const {
     }
 
     // merge like terms
-    Number numericalFactor = 1;
-    std::unordered_map<Variable::SymbolType, Expression*> variables;
-
     std::vector<const Expression*> factors;
     getFactors(simplifiedLeft, factors);
     getFactors(simplifiedRight, factors);
+
+    Number numericalFactor = 1;
+    std::vector<const Expression*> mergedFactors;
+    mergeFactors(numericalFactor, factors, mergedFactors);
+
+    // create simplified expression
+    Expression* result = nullptr;
+    if (factors.size() > 0) {
+        result = fromFactors(factors);
+    }
+
+    if (mergedFactors.size() > 0) {
+        result = result != nullptr ? new Multiplication(result, fromFactors(mergedFactors)) : fromFactors(mergedFactors);
+
+        for (auto it = mergedFactors.begin(); it != mergedFactors.end(); it++) {
+            delete *it;
+        }
+    }
+
+    if (numericalFactor != 1) {
+        result = new Multiplication(new Number(numericalFactor), result);
+    }
+
+    delete simplifiedLeft;
+    delete simplifiedRight;
+
+    return result;
+}
+
+Expression* Multiplication::simplifyExpandable() const {
+    Expression* expanded = expand();
+
+    Expression* result = expanded->simplify();
+    delete expanded;
+
+    return result;
+}
+
+void Multiplication::mergeFactors(Number& numericalFactor, std::vector<const Expression*>& factors, std::vector<const Expression*>& mergedFactors) {
+    std::unordered_map<Variable::SymbolType, Expression*> variables;
 
     for (auto it = factors.begin(); it != factors.end();) {
         switch ((*it)->getType()) {
@@ -124,23 +159,64 @@ Expression* Multiplication::simplify() const {
                 Number value = simplifiedExponent->getValue();
 
                 if (value == 1) {
-                    factors.push_back(new Variable(symbol));
+                    mergedFactors.push_back(new Variable(symbol));
                     delete simplifiedExponent;
                     break;
                 }
             }
             default:
-                factors.push_back(new Exponentiation(new Variable(symbol), simplifiedExponent));
+                mergedFactors.push_back(new Exponentiation(new Variable(symbol), simplifiedExponent));
                 break;
         }
 
         delete exponent;
     }
+}
 
-    // create simplified expression
-    Expression* result = new Multiplication(new Number(numericalFactor), fromFactors(factors));
-    delete simplifiedLeft;
-    delete simplifiedRight;
+Expression* Multiplication::simplifyNumericalFactor(Expression* number, Expression* other) {
+    Number value = number->getValue();
+    delete number;
 
-    return result;
+    if (value == 0) {
+        delete other;
+        return new Number(0);
+    }
+    else if (value == 1) {
+        return other;
+    }
+    else
+        switch (other->getType()) {
+            case ExpressionTypes::Number: {
+                Number product = value * other->getValue();
+                delete other;
+
+                return new Number(product);
+            }
+            case ExpressionTypes::Multiplication: {
+                std::vector<const Expression*> factors;
+                getFactors(other, factors);
+
+                Number result = value;
+                auto it = factors.begin();
+
+                while (it != factors.end()) {
+                    if ((*it)->getType() == ExpressionTypes::Number) {
+                        result *= (*it)->getValue();
+
+                        it = factors.erase(it);
+                    }
+                    else {
+                        it++;
+                    }
+                }
+
+                Expression* nonNumericalFactors = fromFactors(factors);
+                delete other;
+
+                return new Multiplication(new Number(result), nonNumericalFactors);
+            }
+            default: break;
+        }
+
+    return new Multiplication(new Number(value), other);
 }

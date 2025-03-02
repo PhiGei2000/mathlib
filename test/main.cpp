@@ -2,30 +2,54 @@
 
 #include <iostream>
 
-int main(int argC, char** argV) {
-    auto x = Variable("x");
-    auto y = Variable("y");
+int max_depth = 3;
 
-    auto two = Number(3);
-    auto five = Number(5);
-    auto prod = mul(five, y);
-    auto expr = pow(prod, two);
-    auto sum = add(x, prod);
+Expression* createExpression(int depth = 0) {
+    ExpressionTypes type = static_cast<ExpressionTypes>(rand() % (depth < max_depth ? 5 : 2) + 1);
 
-    auto result = expr.differentiate(&y);
-    auto simplifiedResult = result->simplify();
+    switch (type) {
+        case ExpressionTypes::Number:
+            return new Number(rand() / static_cast<double>(RAND_MAX));
+        case ExpressionTypes::Variable:
+            return new Variable(std::string({static_cast<char>('a' + (rand() % 26))}));
+        case ExpressionTypes::Addition: {
+            Expression* left = createExpression(depth + 1);
+            Expression* right = createExpression(depth + 1);
 
-    std::cout << "d/dy " << expr.toString() << " = " << simplifiedResult->toString() << std::endl;
+            return add(left, right);
+        }
+        case ExpressionTypes::Multiplication: {
+            Expression* left = createExpression(depth + 1);
+            Expression* right = createExpression(depth + 1);
 
-    std::cout << "Num of expressions: " << Expression::expressionCount << "\nDelete result" << std::endl;
+            return mul(left, right);
+        }
+        case ExpressionTypes::Exponentiation: {
+            Expression* left = createExpression(depth + 1);
+            Expression* right = createExpression(depth + 1);
 
-    delete result;
-    delete simplifiedResult;
-
-    std::cout << "Num of expressions: " << Expression::expressionCount;
-    for (const Expression* expr : Expression::expressions) {
-        std::cout << "\n\t" << expr->toString();
+            return pow(left, right);
+        }
     }
+}
 
-    std::cout << std::endl;
+int main(int argC, char** argV) {
+    for (int i = 0; i < 50; i++) {
+        // Expression* expr = mul(add(new Number(2), new Variable("x")), add(new Variable("y"), new Number(5)));
+        Expression* expr = createExpression();
+        if (static_cast<int>(expr->getType()) <= 2) {
+            delete expr;
+            i--;
+            continue;
+        }
+
+        auto simplified = expr->simplify();
+
+        std::cout << expr->to_string() << " = " << simplified->to_string() << std::endl;
+
+        delete simplified;
+        delete expr;
+
+    }
+    std::cout << Expression::expressionCount << std::endl;
 }

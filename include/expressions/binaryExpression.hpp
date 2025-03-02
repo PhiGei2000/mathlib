@@ -35,6 +35,18 @@ struct BinaryExpressionBase : public Expression {
             right->replaceChild(child, expr);
         }
     }
+
+    inline std::pair<Expression*, Expression*> simplifyChildren() const {
+        Expression* expandedLeft = left->expand();
+        Expression* simplifiedLeft = expandedLeft->simplify();
+        delete expandedLeft;
+
+        Expression* expandedRight = right->expand();
+        Expression* simplifiedRight = expandedRight->simplify();
+        delete expandedRight;
+
+        return {simplifiedLeft, simplifiedRight};
+    }
 };
 
 template<bool commutative>

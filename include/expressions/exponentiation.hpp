@@ -31,13 +31,7 @@ struct Exponentiation : public BinaryExpression<false> {
     }
 
     inline virtual Expression* simplify() const override {
-        Expression* expandedLeft = left->expand();
-        Expression* simplifiedLeft = expandedLeft->simplify();
-        delete expandedLeft;
-
-        Expression* expandedRight = right->expand();
-        Expression* simplifiedRight = right->simplify();
-        delete expandedRight;
+        auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
 
         switch (simplifiedLeft->getType()) {
             case ExpressionTypes::Number:
@@ -82,6 +76,13 @@ struct Exponentiation : public BinaryExpression<false> {
 };
 
 template<ExpressionType TBase, ExpressionType TExp>
-Exponentiation pow(TBase& base, TExp& exponent) {
+inline Exponentiation pow(TBase& base, TExp& exponent) {
     return Exponentiation(&base, &exponent);
+}
+
+template<ExpressionType TBase, ExpressionType TExp>
+inline Exponentiation* pow(TBase* base, TExp* exp) {
+    return new Exponentiation(
+        base->parent != nullptr ? base->copy() : base,
+        exp->parent != nullptr ? exp->copy() : exp);
 }

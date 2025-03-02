@@ -18,8 +18,7 @@ struct Addition : public BinaryExpression<true> {
     }
 
     inline virtual Expression* simplify() const override {
-        Expression* simplifiedLeft = left->simplify();
-        Expression* simplifiedRight = right->simplify();
+        auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
 
         switch (simplifiedLeft->getType()) {
             case ExpressionTypes::Number:
@@ -38,7 +37,6 @@ struct Addition : public BinaryExpression<true> {
         getSummands(simplifiedRight, summands);
 
         // TODO: identify like terms and merge summands
-
 
         return new Addition(simplifiedLeft, simplifiedRight);
     }
@@ -79,4 +77,11 @@ struct Addition : public BinaryExpression<true> {
 template<ExpressionType T1, ExpressionType T2>
 inline Addition add(T1& first, T2& second) {
     return Addition(&first, &second);
+}
+
+template<ExpressionType T1, ExpressionType T2>
+inline Addition* add(T1* first, T2* second) {
+    return new Addition(
+        first->parent != nullptr ? first->copy() : first,
+        second->parent != nullptr ? second->copy() : second);
 }
