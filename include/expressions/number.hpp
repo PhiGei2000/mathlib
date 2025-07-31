@@ -17,6 +17,10 @@ struct Number : public Expression {
     virtual std::string to_string() const override;
     virtual ExpressionTypes getType() const override;
 
+    inline virtual bool isNumeric() const override {
+        return true;
+    }
+
     inline bool isInteger() const {
         return std::floor(value) == value;
     }

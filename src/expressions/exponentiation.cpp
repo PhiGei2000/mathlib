@@ -40,6 +40,11 @@ Expression* Exponentiation::simplifyNumericalExponent(Expression* base, Expressi
     Number exponentValue = exponent->getValue();
     delete exponent;
 
+    if (exponentValue == 0) {
+        delete base;
+        return new Number(1);
+    }
+
     switch (base->getType()) {
         case ExpressionTypes::Number: {
             Number baseValue = base->getValue();
@@ -47,6 +52,7 @@ Expression* Exponentiation::simplifyNumericalExponent(Expression* base, Expressi
             delete base;
             return new Number(baseValue ^ exponentValue);
         }
+        break;
         default:
             break;
     }

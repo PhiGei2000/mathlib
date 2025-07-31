@@ -36,6 +36,15 @@ struct Exponentiation : public BinaryExpression<false> {
         switch (simplifiedLeft->getType()) {
             case ExpressionTypes::Number:
                 return simplifyNumericalBase(simplifiedLeft, simplifiedRight);
+            case ExpressionTypes::Exponentiation: {
+                Exponentiation* base = reinterpret_cast<Exponentiation*>(simplifiedLeft);
+                base->right = new Multiplication(base->right, simplifiedRight);
+
+                Expression* simplified = base->simplify();
+                delete base;
+
+                return simplified;
+            } break;
             default:
                 break;
         }
@@ -74,15 +83,3 @@ struct Exponentiation : public BinaryExpression<false> {
     static Expression* simplifyNumericalBase(Expression* base, Expression* exponent);
     static Expression* simplifyNumericalExponent(Expression* base, Expression* exponent);
 };
-
-template<ExpressionType TBase, ExpressionType TExp>
-inline Exponentiation pow(TBase& base, TExp& exponent) {
-    return Exponentiation(&base, &exponent);
-}
-
-template<ExpressionType TBase, ExpressionType TExp>
-inline Exponentiation* pow(TBase* base, TExp* exp) {
-    return new Exponentiation(
-        base->parent != nullptr ? base->copy() : base,
-        exp->parent != nullptr ? exp->copy() : exp);
-}

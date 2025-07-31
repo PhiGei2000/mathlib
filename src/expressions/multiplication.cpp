@@ -43,7 +43,7 @@ Expression* Multiplication::expand() const {
 
 Expression* Multiplication::simplify() const {
     if (left->getType() == ExpressionTypes::Addition || right->getType() == ExpressionTypes::Addition) {
-        simplifyExpandable();
+        return simplifyExpandable();
     }
 
     // simplify both factors
@@ -70,19 +70,18 @@ Expression* Multiplication::simplify() const {
     Number numericalFactor = 1;
     std::vector<const Expression*> mergedFactors;
     mergeFactors(numericalFactor, factors, mergedFactors);
+    factors.append_range(mergedFactors);
 
     // create simplified expression
-    Expression* result = nullptr;
-    if (factors.size() > 0) {
-        result = fromFactors(factors);
+    Expression* result = fromFactors(factors);
+
+    for (auto it = mergedFactors.begin(); it != mergedFactors.end(); it++) {
+        delete *it;
     }
 
-    if (mergedFactors.size() > 0) {
-        result = result != nullptr ? new Multiplication(result, fromFactors(mergedFactors)) : fromFactors(mergedFactors);
-
-        for (auto it = mergedFactors.begin(); it != mergedFactors.end(); it++) {
-            delete *it;
-        }
+    if (factors.size() == 0) {
+        delete result;
+        return new Number(numericalFactor);
     }
 
     if (numericalFactor != 1) {
@@ -164,9 +163,19 @@ void Multiplication::mergeFactors(Number& numericalFactor, std::vector<const Exp
                     break;
                 }
             }
-            default:
-                mergedFactors.push_back(new Exponentiation(new Variable(symbol), simplifiedExponent));
-                break;
+            default: {
+                Expression* mergedFactor = new Exponentiation(new Variable(symbol), simplifiedExponent);
+                Expression* simplifiedFactor = mergedFactor->simplify();
+
+                if (simplifiedFactor->isNumeric()) {
+                    numericalFactor *= simplifiedFactor->getValue();
+                    delete simplifiedFactor;
+                }
+                else {
+                    mergedFactors.push_back(simplifiedFactor);
+                }
+                delete mergedFactor;
+            } break;
         }
 
         delete exponent;

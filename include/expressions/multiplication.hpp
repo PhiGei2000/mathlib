@@ -46,33 +46,26 @@ struct Multiplication : public BinaryExpression<true> {
     static Expression* simplifyNumericalFactor(Expression* number, Expression* other);
 
     inline static Expression* fromFactors(const std::vector<const Expression*>& factors) {
-        switch (factors.size()) {
-            case 0:
-                return new Number(1);
-            default: {
-                Expression* result = factors.front()->copy();
-
-                for (int i = 1; i < factors.size(); i++) {
-                    result = new Multiplication(result, factors[i]->copy());
-                }
-
-                return result;
-            }
+        if (factors.size() == 0) {
+            return new Number(1);
         }
+
+        Expression* result = nullptr;
+
+        for (const Expression* factor : factors) {
+            if (factor->isNumeric()) {
+                NumericType value = factor->getValue();
+                if (value == 1) {
+                    continue;
+                }
+            }
+
+            result = result == nullptr ? factor->copy() : new Multiplication(result, factor->copy());
+        }
+
+        return result;
     }
 
     Expression* simplifyExpandable() const;
     static void mergeFactors(Number& numericalFactor, std::vector<const Expression*>& factors, std::vector<const Expression*>& mergedFactors);
 };
-
-template<ExpressionType T1, ExpressionType T2>
-Multiplication mul(T1& first, T2& second) {
-    return Multiplication(&first, &second);
-}
-
-template<ExpressionType T1, ExpressionType T2>
-Multiplication* mul(T1* first, T2* second) {
-    return new Multiplication(
-        first->parent != nullptr ? first->copy() : first,
-        second->parent != nullptr ? second->copy() : second);
-}

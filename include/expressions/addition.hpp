@@ -17,29 +17,7 @@ struct Addition : public BinaryExpression<true> {
         return new Addition(left->differentiate(var), right->differentiate(var));
     }
 
-    inline virtual Expression* simplify() const override {
-        auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
-
-        switch (simplifiedLeft->getType()) {
-            case ExpressionTypes::Number:
-                return simplifyNummericalSummand(simplifiedLeft, simplifiedRight);
-            default: break;
-        }
-
-        switch (simplifiedRight->getType()) {
-            case ExpressionTypes::Number:
-                return simplifyNummericalSummand(simplifiedRight, simplifiedLeft);
-            default: break;
-        }
-
-        std::vector<const Expression*> summands;
-        getSummands(simplifiedLeft, summands);
-        getSummands(simplifiedRight, summands);
-
-        // TODO: identify like terms and merge summands
-
-        return new Addition(simplifiedLeft, simplifiedRight);
-    }
+    virtual Expression* simplify() const override;
 
     inline virtual std::string to_string() const override {
         return left->to_string() + " + " + right->to_string();
@@ -72,16 +50,26 @@ struct Addition : public BinaryExpression<true> {
 
         return new Addition(new Number(value1), other);
     }
+
+    static void mergeSummands(std::vector<const Expression*>& summands);
+
+    static Expression* fromSummands(const std::vector<const Expression*>& summands) {
+        if (summands.size() == 0) {
+            return new Number(0);
+        }
+
+        Expression* result = nullptr;
+        for (const Expression* summand : summands) {
+            if (summand->isNumeric()) {
+                NumericType value = summand->getValue();
+                if (value == 0) {
+                    continue;
+                }
+            }
+
+            result = result == nullptr ? summand->copy() : new Addition(result, summand->copy());
+        }
+
+        return result;
+    }
 };
-
-template<ExpressionType T1, ExpressionType T2>
-inline Addition add(T1& first, T2& second) {
-    return Addition(&first, &second);
-}
-
-template<ExpressionType T1, ExpressionType T2>
-inline Addition* add(T1* first, T2* second) {
-    return new Addition(
-        first->parent != nullptr ? first->copy() : first,
-        second->parent != nullptr ? second->copy() : second);
-}

@@ -2,12 +2,30 @@
 
 #include "expressions/addition.hpp"
 #include "expressions/binaryExpression.hpp"
+#include "expressions/expressions.hpp"
 #include "expressions/multiplication.hpp"
 #include "expressions/number.hpp"
 #include "expressions/variable.hpp"
 
 int Expression::expressionCount = 0;
 std::vector<const Expression*> Expression::expressions = {};
+
+std::set<Variable> Expression::getVariables() const {
+    return {};
+}
+
+bool Expression::areLike(const Expression* first, const Expression* second, Number& factor) {
+    Multiplication* quotient = div(first, second);
+    Expression* simplifiedQuotient = quotient->simplify();
+
+    delete quotient;
+    bool like = simplifiedQuotient->isNumeric();
+    factor = like ? simplifiedQuotient->getValue() : Number(0);
+
+    delete simplifiedQuotient;
+
+    return like;
+}
 
 Expression* Expression::differentiate(const Variable* var) const {
     return new Number(0);
@@ -22,7 +40,7 @@ void Expression::operator delete(void* ptr) {
     }
 
     expressionCount -= 1;
-    expressions.erase(std::find(expressions.begin(), expressions.end(), expr));
+    expressions.erase(std::ranges::find(expressions.begin(), expressions.end(), expr));
 
     return ::operator delete(ptr);
 }

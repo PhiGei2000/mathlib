@@ -38,6 +38,10 @@ struct Expression {
         return false;
     }
 
+    inline virtual bool isNumeric() const {
+        return false;
+    }
+
     inline virtual bool isComplex() const {
         return false;
     }
@@ -45,6 +49,10 @@ struct Expression {
     inline virtual std::vector<const Expression*> getChildren() const {
         return {};
     }
+
+    virtual std::set<Variable> getVariables() const;
+
+    static bool areLike(const Expression* first, const Expression* second, Number& factor);
 
     inline virtual bool matches(const Expression* pattern) const = 0;
 

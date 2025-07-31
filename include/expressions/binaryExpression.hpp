@@ -1,6 +1,10 @@
 #pragma once
 #include "expressions/expression.hpp"
 
+#include "variable.hpp"
+
+#include <algorithm>
+
 struct BinaryExpressionBase : public Expression {
     Expression* left;
     Expression* right;
@@ -15,8 +19,20 @@ struct BinaryExpressionBase : public Expression {
         return true;
     }
 
+    inline virtual bool isNumeric() const override {
+        return left->isNumeric() && right->isNumeric();
+    }
+
     inline virtual std::vector<const Expression*> getChildren() const override {
         return {left, right};
+    }
+
+    inline virtual std::set<Variable> getVariables() const override {
+        std::set<Variable> leftVariables = left->getVariables();
+        const std::set<Variable>& rightVariables = right->getVariables();
+
+        leftVariables.insert_range(rightVariables);
+        return leftVariables;
     }
 
     inline virtual void replaceChild(Expression* child, Expression* expr) override {

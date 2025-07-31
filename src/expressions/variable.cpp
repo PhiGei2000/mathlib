@@ -28,9 +28,21 @@ ExpressionTypes Variable::getType() const {
     return ExpressionTypes::Variable;
 }
 
+std::set<Variable> Variable::getVariables() const {
+    return {Variable(symbol)};
+}
+
 bool Variable::matches(const Expression* pattern) const {
     if (pattern->getType() != ExpressionTypes::Variable)
         return false;
 
     return true;
+}
+
+bool Variable::operator==(const Variable& other) const {
+    return symbol == other.symbol;
+}
+
+bool Variable::operator!=(const Variable& other) const {
+    return !(*this == other);
 }

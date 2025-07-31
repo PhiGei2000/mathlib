@@ -11,7 +11,7 @@ Expression* createExpression(int depth = 0) {
         case ExpressionTypes::Number:
             return new Number(rand() / static_cast<double>(RAND_MAX));
         case ExpressionTypes::Variable:
-            return new Variable(std::string({static_cast<char>('a' + (rand() % 26))}));
+            return new Variable(std::string("x"));
         case ExpressionTypes::Addition: {
             Expression* left = createExpression(depth + 1);
             Expression* right = createExpression(depth + 1);
@@ -34,9 +34,9 @@ Expression* createExpression(int depth = 0) {
 }
 
 int main(int argC, char** argV) {
-    for (int i = 0; i < 50; i++) {
-        // Expression* expr = mul(add(new Number(2), new Variable("x")), add(new Variable("y"), new Number(5)));
+    for (int i =0; i < 100; i++) {
         Expression* expr = createExpression();
+
         if (static_cast<int>(expr->getType()) <= 2) {
             delete expr;
             i--;
@@ -51,5 +51,4 @@ int main(int argC, char** argV) {
         delete expr;
 
     }
-    std::cout << Expression::expressionCount << std::endl;
 }
