@@ -1,15 +1,26 @@
 #pragma once
 #include "expressions/addition.hpp"
-#include "expressions/binaryExpression.hpp"
+#include "expressions/distributiveExpression.hpp"
 #include "expressions/number.hpp"
 
 #include <typeindex>
 #include <vector>
 
-struct Multiplication : public BinaryExpression<true> {
+struct Multiplication : public DistributiveBinaryExpression<true, Multiplication, Addition> {
   public:
+    inline constexpr Multiplication() {
+    }
+
     inline Multiplication(Expression* left, Expression* right)
-        : BinaryExpression(left, right) {
+        : DistributiveBinaryExpression(left, right) {
+    }
+
+    inline virtual constexpr std::optional<Number> getIdentity() const override {
+        return 1;
+    }
+
+    inline virtual constexpr std::optional<Number> getAbsorbingElement() const override {
+        return 0;
     }
 
     inline virtual Number getValue() const override {
@@ -21,6 +32,10 @@ struct Multiplication : public BinaryExpression<true> {
     }
 
     virtual Expression* simplify() const override;
+
+    inline virtual bool matches(const Expression* pattern) const override {
+        return BinaryExpression<true>::matches(pattern);
+    }
 
     inline virtual std::string to_string() const override {
         bool bracketsLeft = left->getType() == ExpressionTypes::Addition || left->isComplex();
@@ -36,14 +51,12 @@ struct Multiplication : public BinaryExpression<true> {
         return ExpressionTypes::Multiplication;
     }
 
-    virtual Expression* expand() const override;
-
     inline virtual Expression* copy() const override {
         return new Multiplication(left->copy(), right->copy());
     }
 
   protected:
-    static Expression* simplifyNumericalFactor(Expression* number, Expression* other);
+    // static Expression* simplifyNumericalFactor(Expression* number, Expression* other);
 
     inline static Expression* fromFactors(const std::vector<const Expression*>& factors) {
         if (factors.size() == 0) {
@@ -56,16 +69,20 @@ struct Multiplication : public BinaryExpression<true> {
             if (factor->isNumeric()) {
                 NumericType value = factor->getValue();
                 if (value == 1) {
+                    delete factor;
                     continue;
                 }
             }
 
             result = result == nullptr ? factor->copy() : new Multiplication(result, factor->copy());
+            delete factor;
         }
 
         return result;
     }
 
-    Expression* simplifyExpandable() const;
-    static void mergeFactors(Number& numericalFactor, std::vector<const Expression*>& factors, std::vector<const Expression*>& mergedFactors);
+    static void mergeFactors(std::vector<const Expression*>& factors);
 };
+
+#undef left
+#undef right

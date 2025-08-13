@@ -1,111 +1,27 @@
 #include "expressions/multiplication.hpp"
 
-#include "expressions/addition.hpp"
-#include "expressions/exponentiation.hpp"
+#include "expressions/expressions.hpp"
+#include "expressions/simplifier.hpp"
 
 #include <stack>
 
-Expression* Multiplication::expand() const {
-    std::vector<const Expression*> leftSummands;
-    std::vector<const Expression*> rightSummands;
-
-    Expression* left = this->left->expand();
-    Expression* right = this->right->expand();
-
-    getSummands(left, leftSummands);
-    getSummands(right, rightSummands);
-
-    if (leftSummands.size() == 1 && rightSummands.size() == 1) {
-        delete left;
-        delete right;
-
-        return copy();
-    }
-
-    // (a + b) * (c + d) = ac + ad + bc + bd
-    Expression* result = nullptr;
-    for (int l = leftSummands.size() - 1; l >= 0; l--) {
-        for (int r = rightSummands.size() - 1; r >= 0; r--) {
-            if (result == nullptr) {
-                result = new Multiplication(leftSummands[l]->copy(), rightSummands[r]->copy());
-            }
-            else {
-                result = new Addition(result, new Multiplication(leftSummands[l]->copy(), rightSummands[r]->copy()));
-            }
-        }
-    }
-
-    delete left;
-    delete right;
-
-    return result;
-}
-
 Expression* Multiplication::simplify() const {
     if (left->getType() == ExpressionTypes::Addition || right->getType() == ExpressionTypes::Addition) {
-        return simplifyExpandable();
+        Expression* expanded = distribute();
+        Expression* result = expanded->simplify();
+
+        delete expanded;
+        return result;
     }
 
-    // simplify both factors
-    auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
-
-    // simplify numerical factors
-    switch (simplifiedLeft->getType()) {
-        case ExpressionTypes::Number:
-            return simplifyNumericalFactor(simplifiedLeft, simplifiedRight);
-        default: break;
-    }
-
-    switch (simplifiedRight->getType()) {
-        case ExpressionTypes::Number:
-            return simplifyNumericalFactor(simplifiedRight, simplifiedLeft);
-        default: break;
-    }
-
-    // merge like terms
-    std::vector<const Expression*> factors;
-    getFactors(simplifiedLeft, factors);
-    getFactors(simplifiedRight, factors);
-
-    Number numericalFactor = 1;
-    std::vector<const Expression*> mergedFactors;
-    mergeFactors(numericalFactor, factors, mergedFactors);
-    factors.append_range(mergedFactors);
-
-    // create simplified expression
-    Expression* result = fromFactors(factors);
-
-    for (auto it = mergedFactors.begin(); it != mergedFactors.end(); it++) {
-        delete *it;
-    }
-
-    if (factors.size() == 0) {
-        delete result;
-        return new Number(numericalFactor);
-    }
-
-    if (numericalFactor != 1) {
-        result = new Multiplication(new Number(numericalFactor), result);
-    }
-
-    delete simplifiedLeft;
-    delete simplifiedRight;
-
-    return result;
+    return Simplifier::simplify<Multiplication>(this, [](const Number& x, const Number& y) { return x * y; });
 }
 
-Expression* Multiplication::simplifyExpandable() const {
-    Expression* expanded = expand();
-
-    Expression* result = expanded->simplify();
-    delete expanded;
-
-    return result;
-}
-
-void Multiplication::mergeFactors(Number& numericalFactor, std::vector<const Expression*>& factors, std::vector<const Expression*>& mergedFactors) {
+template<>
+void Simplifier::mergeTerms<Multiplication>(std::vector<const Expression*>& factors) {
     std::unordered_map<Variable::SymbolType, Expression*> variables;
 
+    Number numericalFactor = 1;
     for (auto it = factors.begin(); it != factors.end();) {
         switch ((*it)->getType()) {
             case ExpressionTypes::Number:
@@ -150,6 +66,16 @@ void Multiplication::mergeFactors(Number& numericalFactor, std::vector<const Exp
         }
     }
 
+    std::vector<const Expression*> mergedFactors;
+    if (numericalFactor != 1) {
+        mergedFactors.push_back(new Number(numericalFactor));
+    }
+
+    for (auto it = factors.begin(); it != factors.end();) {
+        mergedFactors.push_back((*it)->copy());
+        it = factors.erase(it);
+    }
+
     // sum up exponents
     for (const auto [symbol, exponent] : variables) {
         Expression* simplifiedExponent = exponent->simplify();
@@ -180,52 +106,6 @@ void Multiplication::mergeFactors(Number& numericalFactor, std::vector<const Exp
 
         delete exponent;
     }
-}
 
-Expression* Multiplication::simplifyNumericalFactor(Expression* number, Expression* other) {
-    Number value = number->getValue();
-    delete number;
-
-    if (value == 0) {
-        delete other;
-        return new Number(0);
-    }
-    else if (value == 1) {
-        return other;
-    }
-    else
-        switch (other->getType()) {
-            case ExpressionTypes::Number: {
-                Number product = value * other->getValue();
-                delete other;
-
-                return new Number(product);
-            }
-            case ExpressionTypes::Multiplication: {
-                std::vector<const Expression*> factors;
-                getFactors(other, factors);
-
-                Number result = value;
-                auto it = factors.begin();
-
-                while (it != factors.end()) {
-                    if ((*it)->getType() == ExpressionTypes::Number) {
-                        result *= (*it)->getValue();
-
-                        it = factors.erase(it);
-                    }
-                    else {
-                        it++;
-                    }
-                }
-
-                Expression* nonNumericalFactors = fromFactors(factors);
-                delete other;
-
-                return new Multiplication(new Number(result), nonNumericalFactors);
-            }
-            default: break;
-        }
-
-    return new Multiplication(new Number(value), other);
+    factors.append_range(mergedFactors);
 }

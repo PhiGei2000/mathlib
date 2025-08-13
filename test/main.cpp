@@ -1,4 +1,5 @@
 #include <expressions/expressions.hpp>
+#include <expressions/simplifier.hpp>
 
 #include <iostream>
 
@@ -11,7 +12,7 @@ Expression* createExpression(int depth = 0) {
         case ExpressionTypes::Number:
             return new Number(rand() / static_cast<double>(RAND_MAX));
         case ExpressionTypes::Variable:
-            return new Variable(std::string("x"));
+            return new Variable(std::string(1, 'x' + rand() % ('z' - 'x')));
         case ExpressionTypes::Addition: {
             Expression* left = createExpression(depth + 1);
             Expression* right = createExpression(depth + 1);
@@ -34,8 +35,9 @@ Expression* createExpression(int depth = 0) {
 }
 
 int main(int argC, char** argV) {
-    for (int i =0; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         Expression* expr = createExpression();
+        // Expression* expr = add(mul(Number(2), Variable("x")), Variable("x"));
 
         if (static_cast<int>(expr->getType()) <= 2) {
             delete expr;
@@ -49,6 +51,7 @@ int main(int argC, char** argV) {
 
         delete simplified;
         delete expr;
-
     }
+
+    std::cout << Expression::expressionCount << std::endl;
 }

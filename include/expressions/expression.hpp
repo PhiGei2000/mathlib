@@ -17,7 +17,10 @@ enum class ExpressionTypes : unsigned int {
 };
 
 template<typename T>
-concept ExpressionType = std::is_base_of<Expression, T>::value;
+concept ExpressionType = std::is_base_of_v<Expression, T>;
+
+template<ExpressionType T>
+ExpressionTypes getExpressionType();
 
 struct Expression {
   public:
@@ -56,10 +59,6 @@ struct Expression {
 
     inline virtual bool matches(const Expression* pattern) const = 0;
 
-    inline virtual Expression* expand() const {
-        return copy();
-    };
-
     virtual Expression* differentiate(const Variable* var) const;
 
     inline virtual Expression* simplify() const {
@@ -92,7 +91,7 @@ struct Expression {
 
     static void operator delete(void* ptr);
 
-  protected:
-    static void getSummands(const Expression* expr, std::vector<const Expression*>& summands);
-    static void getFactors(const Expression* expr, std::vector<const Expression*>& factors);
+    inline virtual void getTerms(std::vector<const Expression*>& terms) const {
+        terms.push_back(this);
+    }
 };

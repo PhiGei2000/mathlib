@@ -5,8 +5,15 @@
 
 struct Addition : public BinaryExpression<true> {
   public:
+    inline constexpr Addition() : BinaryExpression<true>() {
+    }
+
     inline Addition(Expression* left, Expression* right)
         : BinaryExpression(left, right) {
+    }
+
+    inline virtual constexpr std::optional<Number> getIdentity() const override {
+        return 0;
     }
 
     inline virtual Number getValue() const override {
@@ -42,7 +49,6 @@ struct Addition : public BinaryExpression<true> {
 
         if (other->getType() == ExpressionTypes::Number) {
             Number value2 = other->getValue();
-
             delete other;
 
             return new Number(value1 + value2);
@@ -63,11 +69,13 @@ struct Addition : public BinaryExpression<true> {
             if (summand->isNumeric()) {
                 NumericType value = summand->getValue();
                 if (value == 0) {
+                    delete summand;
                     continue;
                 }
             }
 
             result = result == nullptr ? summand->copy() : new Addition(result, summand->copy());
+            delete summand;
         }
 
         return result;

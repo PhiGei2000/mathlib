@@ -7,6 +7,21 @@
 #include "expressions/number.hpp"
 #include "expressions/variable.hpp"
 
+template<>
+ExpressionTypes getExpressionType<Addition>() {
+    return ExpressionTypes::Addition;
+}
+
+template<>
+ExpressionTypes getExpressionType<Multiplication>() {
+    return ExpressionTypes::Multiplication;
+}
+
+template<>
+ExpressionTypes getExpressionType<Exponentiation>() {
+    return ExpressionTypes::Exponentiation;
+}
+
 int Expression::expressionCount = 0;
 std::vector<const Expression*> Expression::expressions = {};
 
@@ -43,28 +58,4 @@ void Expression::operator delete(void* ptr) {
     expressions.erase(std::ranges::find(expressions.begin(), expressions.end(), expr));
 
     return ::operator delete(ptr);
-}
-
-void Expression::getSummands(const Expression* expr, std::vector<const Expression*>& summands) {
-    if (expr->getType() == ExpressionTypes::Addition) {
-        const Addition* sum = static_cast<const Addition*>(expr);
-
-        getSummands(sum->left, summands);
-        getSummands(sum->right, summands);
-    }
-    else {
-        summands.push_back(expr);
-    }
-}
-
-void Expression::getFactors(const Expression* expr, std::vector<const Expression*>& factors) {
-    if (expr->getType() == ExpressionTypes::Multiplication) {
-        const Multiplication* product = static_cast<const Multiplication*>(expr);
-
-        getFactors(product->left, factors);
-        getFactors(product->right, factors);
-    }
-    else {
-        factors.push_back(expr);
-    }
 }

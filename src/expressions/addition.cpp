@@ -1,41 +1,19 @@
 #include "expressions/addition.hpp"
 
 #include "expressions/expressions.hpp"
+#include "expressions/simplifier.hpp"
 
 Expression* Addition::simplify() const {
-    auto [simplifiedLeft, simplifiedRight] = simplifyChildren();
-
-    switch (simplifiedLeft->getType()) {
-        case ExpressionTypes::Number:
-            return simplifyNummericalSummand(simplifiedLeft, simplifiedRight);
-        default: break;
-    }
-
-    switch (simplifiedRight->getType()) {
-        case ExpressionTypes::Number:
-            return simplifyNummericalSummand(simplifiedRight, simplifiedLeft);
-        default: break;
-    }
-
-    std::vector<const Expression*> summands;
-    getSummands(simplifiedLeft, summands);
-    getSummands(simplifiedRight, summands);
-
-    // identify like terms and merge summands
-    mergeSummands(summands);
-
-    delete simplifiedLeft;
-    delete simplifiedRight;
-    return fromSummands(summands);
-
-    // return new Addition(simplifiedLeft, simplifiedRight);
+    return Simplifier::simplify(this, [](const Number& x, const Number& y) { return x + y; });
 }
 
-void Addition::mergeSummands(std::vector<const Expression*>& summands) {
+template<>
+void Simplifier::mergeTerms<Addition>(std::vector<const Expression*>& summands) {
+
     std::vector<std::pair<const Expression*, Number>> terms;
 
     Number numericalSummand = 0;
-    for (auto it = summands.begin(); it != summands.end(); ) {
+    for (auto it = summands.begin(); it != summands.end();) {
         if ((*it)->isNumeric()) {
             numericalSummand += (*it)->getValue();
 

@@ -16,6 +16,10 @@ struct Exponentiation : public BinaryExpression<false> {
         : BinaryExpression(base, exp) {
     }
 
+    inline virtual constexpr std::optional<Number> getRightIdentity() const override {
+        return 1;
+    }
+
     inline virtual Number getValue() const override {
         return std::pow(left->getValue(), right->getValue());
     }
@@ -76,8 +80,6 @@ struct Exponentiation : public BinaryExpression<false> {
     inline virtual Expression* copy() const override {
         return new Exponentiation(left->copy(), right->copy());
     }
-
-    virtual Expression* expand() const override;
 
   protected:
     static Expression* simplifyNumericalBase(Expression* base, Expression* exponent);
